@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+  <title>OpenAIs teksthjelper</title>
+  <link
+    rel="shortcut icon"
+    href="{{ url_for('static', filename='ij.jpg') }}"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
+  <script>
+    function doProgress(){
+        textValue = document.getElementById('tekst').value.trim();
+        if (textValue != ""){
+          document.getElementById("progress").innerHTML = "<span>Jobber med teksten&#8230;</span><div class=\"loader\"></div>";
+        }
+
+    }
+  </script>
+</head>
+
+<body>
+  <img src="{{ url_for('static', filename='ij.jpg') }}" class="icon" />
+  <h3>Teksthjelp med OpenAi</h3>
+  <form action="/" method="post">
+    <!--<input type="text" name="animal" placeholder="Skriv inn en id eller url" required />-->
+    <textarea id="tekst" name="tekst" placeholder="Skriv inn en tekst, id eller en url. Tjenesten er utviklet av Knut Sætre og Thomas Nikolai Blekeli i NRK, og delt under CC-BY 4.0-lisensen." required>{% if requestText %}{{ requestText }}{% endif %}</textarea>
+    <input type="submit" value="Lag sammendrag" onclick="doProgress()"/>
+  </form>
+  <div id="progress">
+
+  </div>
+  {% if result %}
+  <div>
+    <p>Dette er en tekst generert av kunstig intelligens (KI), men ingen faktasjekker.
+      <ul>
+        <li>Bruk av tittelforslag er til inspirasjon og trengs ikke å merkes</li>
+        <li>Bruk av faktaboks/oppsummering må gjennomgås punkt for punkt og merkes med: <strong>«Oppsummeringen er laget av en KI-tjeneste fra OpenAi. Innholdet er gjennomgått av våre journalister før publisering.»</strong> 
+        </li>
+      </ul> 
+    </p>
+    <textarea name="r" class="result">{{ result }}</textarea>
+  </div>
+  {% endif %}
+
+{% if ttest %}
+<p>{{ ttest }}</p>
+{% endif %}
+</body>

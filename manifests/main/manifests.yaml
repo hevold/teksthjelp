@@ -1,0 +1,88 @@
+---
+# Source: generic-app/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: teksthjelper
+spec:
+  selector:
+    app: teksthjelper
+  ports:
+  - name: teksthjelper
+    port: 80
+    targetPort: 80
+---
+# Source: generic-app/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: teksthjelper
+    my-label: example
+  name: teksthjelper
+  annotations:
+    nrk/criticality: "4"
+    nrk/documentation: "https://github.com/nrkno/teksthjelper"
+    nrk/alert-treshold-max-unavailable-replicas: "50%"
+    nrk/ignore-monitoring: "false"
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: teksthjelper
+  template:
+    metadata:
+      labels:
+        app: teksthjelper
+    spec:
+      restartPolicy: Always
+      priorityClassName: non-critical
+      containers:
+        - image: plattform.azurecr.io/teksthjelper/teksthjelper/main
+          name: teksthjelper
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+---
+# Source: generic-app/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: teksthjelper
+  annotations:
+    nginx.ingress.kubernetes.io/enable-global-auth: "true"
+    nrk/ignore-monitoring: "false"
+    nrk/ignore-monitoring-hosts: "false"
+    nrk/ignore-monitoring-paths: "false"
+    another/annotation: something
+spec:
+  tls:
+  - hosts:
+    - teksthjelper.plattform-int.eno.k8s-nonprod.az.nrk.cloud
+  rules:
+  - host: teksthjelper.plattform-int.eno.k8s-nonprod.az.nrk.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: teksthjelper
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
